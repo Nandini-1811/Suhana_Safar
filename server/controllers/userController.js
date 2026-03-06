@@ -12,12 +12,33 @@ const registerUser = async (req,res) => {
     try{
         const {name,email,password,role} = req.body;
 
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if(!emailRegex.test(email)){
+            return res.status(400).json({
+                message:"Invalid email format"
+            })
+        }
+
+        if(password.length < 6){
+            return res.send(400).json({
+                message:"Password must be at least 6 characters"
+            })
+        }
         const userExists = await User.findOne({email})
 
         if(userExists){
             return res.status(400).json({message : "User already exists"})
         }
 
+        const userRole = "passenger";
+        if(role && role !=="passenger"){
+            if(!req.user || req.user.role !== "admin"){
+                return res.status(403).json({
+                    message : "Only admin can assign driver/admin roles"
+                })
+            }
+            userRole = role;
+        }
         const salt = await bcrypt.genSalt(10)
         const hashedPassword = await bcrypt.hash(password,salt)
 
@@ -26,7 +47,7 @@ const registerUser = async (req,res) => {
             name,
             email,
             password : hashedPassword,
-            role
+            role : userRole
         });
 
         res.status(201).json({

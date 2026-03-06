@@ -1,20 +1,21 @@
 const express = require("express")
 const dotenv = require("dotenv")
 const connectDB = require("./config/db")
-
 const userRoutes = require("./routes/userRoutes")
-
+const busRoutes = require("./routes/busRoutes")
+const bookingRoutes = require("./routes/bookingRoutes")
 
 dotenv.config()
 
 connectDB()
-
 
 const app = express()
 
 app.use(express.json())
 
 app.use("/api/users",userRoutes)
+app.use("/api/buses",busRoutes)
+app.use("/api/bookings",bookingRoutes)
 
 
 app.get("/" , (req,res) => {
