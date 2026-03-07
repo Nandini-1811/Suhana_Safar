@@ -11,7 +11,7 @@ const navItems = [
   { name: "About", path: "/about" },
 ];
 
-function Sidebar() {
+function Sidebar({ onLinkClick }) {
   return (
     <aside className="w-64 min-h-[calc(100vh-4rem)] sticky top-16 p-4 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 transition-colors duration-300">
       <h2 className="text-lg font-semibold mb-6 text-slate-700 dark:text-slate-300">
@@ -23,10 +23,11 @@ function Sidebar() {
           <NavLink
             key={item.path}
             to={item.path}
+            onClick={onLinkClick}
             className={({ isActive }) =>
               `px-4 py-2 rounded-lg transition ${
                 isActive
-                  ? "bg-indigo-400 dark:bg-purple-600 text-white shadow-sm"
+                  ? "bg-indigo-500 dark:bg-purple-600 text-white shadow-sm"
                   : "text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
               }`
             }

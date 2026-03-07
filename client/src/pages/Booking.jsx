@@ -46,10 +46,8 @@ function Bookings() {
       });
 
       toast.success("Booking created successfully");
-
       setBusId("");
       setSeats("");
-
       fetchBookings();
     } catch (error) {
       console.error("Booking failed", error);
@@ -104,7 +102,7 @@ function Bookings() {
 
       <form
         onSubmit={handleBooking}
-        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6 flex flex-col md:flex-row gap-4 shadow-sm"
+        className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 md:p-6 grid grid-cols-1 md:grid-cols-3 gap-4 shadow-sm"
       >
         <select
           value={busId}
@@ -131,7 +129,7 @@ function Bookings() {
 
         <button
           type="submit"
-          className="bg-indigo-500 dark:bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-600 dark:hover:bg-purple-700 transition"
+          className="bg-indigo-500 dark:bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-600 dark:hover:bg-purple-700 transition w-full"
         >
           Book
         </button>
@@ -166,8 +164,8 @@ function Bookings() {
         </div>
       )}
 
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
-        <table className="w-full text-left">
+      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-x-auto shadow-sm">
+        <table className="min-w-[760px] w-full text-left">
           <thead className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
             <tr>
               <th className="p-4">Bus</th>
@@ -189,15 +187,19 @@ function Bookings() {
                       : "hover:bg-slate-50 dark:hover:bg-slate-800/70"
                   }`}
                 >
-                  <td className="p-4">{booking.busId?.busNumber}</td>
+                  <td className="p-4 font-medium whitespace-nowrap">
+                    {booking.busId?.busNumber}
+                  </td>
 
-                  <td className="p-4">{booking.busId?.route}</td>
+                  <td className="p-4 text-slate-600 dark:text-slate-300">
+                    {booking.busId?.route}
+                  </td>
 
-                  <td className="p-4 font-semibold text-indigo-600 dark:text-purple-400">
+                  <td className="p-4 font-semibold text-indigo-600 dark:text-purple-400 whitespace-nowrap">
                     #{booking.seatNumber}
                   </td>
 
-                  <td className="p-4">
+                  <td className="p-4 whitespace-nowrap">
                     <span
                       className={`px-3 py-1 rounded text-sm text-white ${
                         booking.status === "booked"
@@ -209,7 +211,7 @@ function Bookings() {
                     </span>
                   </td>
 
-                  <td className="p-4">
+                  <td className="p-4 whitespace-nowrap">
                     {booking.status === "booked" ? (
                       <button
                         onClick={() => cancelBooking(booking._id)}
