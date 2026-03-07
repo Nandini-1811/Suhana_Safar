@@ -20,7 +20,7 @@ const registerUser = async (req,res) => {
         }
 
         if(password.length < 6){
-            return res.send(400).json({
+            return res.status(400).json({
                 message:"Password must be at least 6 characters"
             })
         }
@@ -30,7 +30,7 @@ const registerUser = async (req,res) => {
             return res.status(400).json({message : "User already exists"})
         }
 
-        const userRole = "passenger";
+        let userRole = "passenger";
         if(role && role !=="passenger"){
             if(!req.user || req.user.role !== "admin"){
                 return res.status(403).json({

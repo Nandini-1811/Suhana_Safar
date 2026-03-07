@@ -1,4 +1,6 @@
 const Bus = require("../models/Bus")
+const { getIO } = require("../socket");
+
 
 exports.createBus = async (req,res) => {
     try{
@@ -71,7 +73,8 @@ exports.updateBusLocation = async (req,res) => {
         }
 
         await bus.save()
-
+        
+        getIO().emit("busLocationUpdate", bus);
         res.json({
             message : "Bus location updated",
             bus

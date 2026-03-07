@@ -1,23 +1,21 @@
-const express = require("express")
-const router = express.Router()
+const express = require("express");
+const router = express.Router();
 
-const{
-    createBus,
-    getAllBuses,
-    getBusById,
-    deleteBus,
-    updateBusLocation
-} = require("../controllers/busController")
+const {
+  createBus,
+  getAllBuses,
+  getBusById,
+  deleteBus,
+  updateBusLocation,
+} = require("../controllers/busController");
 
-const protect = require("../middleware/authMiddleware")
-const adminOnly = require("../middleware/adminMiddleware")
-const driverOnly = require("../middleware/driverMiddleware")
+const protect = require("../middleware/authMiddleware");
+const adminOnly = require("../middleware/adminMiddleware");
 
+router.post("/", protect, adminOnly, createBus);
+router.get("/", getAllBuses);
+router.get("/:id", getBusById);
+router.delete("/:id", protect, adminOnly, deleteBus);
+router.put("/:id/location", updateBusLocation);
 
-router.post("/",protect,adminOnly,createBus)
-router.get("/",protect,getAllBuses)
-router.get("/:id",protect,getBusById)
-router.delete("/:id",protect,adminOnly,deleteBus)
-router.put("/:id/location",protect,driverOnly,updateBusLocation)
 module.exports = router;
-
