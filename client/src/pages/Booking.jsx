@@ -2,6 +2,19 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import toast from "react-hot-toast";
 
+
+function SkeletonRow() {
+  return (
+    <tr className="border-t border-slate-200 dark:border-slate-800">
+      {[...Array(5)].map((_, i) => (
+        <td key={i} className="p-4">
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse w-24"></div>
+        </td>
+      ))}
+    </tr>
+  );
+}
+
 function Bookings() {
   const [buses, setBuses] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -10,13 +23,20 @@ function Bookings() {
   const [selectedBusDetails, setSelectedBusDetails] = useState(null);
   const [bookedSeatsCount, setBookedSeatsCount] = useState(0);
 
+  const [loadingBookings, setLoadingBookings] = useState(true);
+  const [loadingBuses, setLoadingBuses] = useState(true);
+  const [bookingSubmitting, setBookingSubmitting] = useState(false);
+
   const fetchBookings = async () => {
+    setLoadingBookings(true);
     try {
       const res = await API.get("/bookings");
       setBookings(res.data);
     } catch (error) {
       console.error("Error fetching bookings", error);
       toast.error("Failed to fetch bookings");
+    } finally {
+      setLoadingBookings(false);
     }
   };
 
@@ -33,18 +53,20 @@ function Bookings() {
 
   const handleBooking = async (e) => {
     e.preventDefault();
+    
+    if (bookingSubmitting) return;
 
+    if (selectedBusDetails && bookedSeatsCount >= selectedBusDetails.capacity) {
+      toast.error("No seats available for this bus");
+      return;
+    }
+
+    setBookingSubmitting(true);
     try {
-      if (selectedBusDetails && bookedSeatsCount >= selectedBusDetails.capacity) {
-        toast.error("No seats available for this bus");
-        return;
-      }
-
       await API.post("/bookings", {
         busId,
         seatNumber: Number(seats),
       });
-
       toast.success("Booking created successfully");
       setBusId("");
       setSeats("");
@@ -52,16 +74,21 @@ function Bookings() {
     } catch (error) {
       console.error("Booking failed", error);
       toast.error(error.response?.data?.message || "Booking failed");
+    } finally {
+      setBookingSubmitting(false);
     }
   };
 
   const fetchBuses = async () => {
+    setLoadingBuses(true);
     try {
       const res = await API.get("/buses");
       setBuses(res.data);
     } catch (error) {
       console.error("Error fetching buses", error);
       toast.error("Failed to fetch buses");
+    } finally {
+      setLoadingBuses(false);
     }
   };
 
@@ -83,7 +110,6 @@ function Bookings() {
   useEffect(() => {
     const bus = buses.find((b) => b._id === busId) || null;
     setSelectedBusDetails(bus);
-
     if (busId) {
       fetchBookedSeatCount(busId);
     } else {
@@ -109,7 +135,9 @@ function Bookings() {
           onChange={(e) => setBusId(e.target.value)}
           className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 p-3 rounded-lg w-full outline-none focus:border-indigo-500 dark:focus:border-purple-500"
           required
+          disabled={loadingBuses}
         >
+          
           <option value="">Select Bus</option>
           {buses.map((bus) => (
             <option key={bus._id} value={bus._id}>
@@ -127,36 +155,28 @@ function Bookings() {
           required
         />
 
+        
         <button
           type="submit"
-          className="bg-indigo-500 dark:bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-600 dark:hover:bg-purple-700 transition w-full"
+          disabled={bookingSubmitting || loadingBuses}
+          className="bg-indigo-500 dark:bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-600 dark:hover:bg-purple-700 transition w-full disabled:opacity-50"
         >
-          Book
+          {bookingSubmitting ? "Booking..." : "Book"}
         </button>
       </form>
 
       {selectedBusDetails && (
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 grid grid-cols-1 md:grid-cols-3 gap-4 shadow-sm">
           <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
-            <p className="text-slate-500 dark:text-slate-400 text-sm">
-              Bus Capacity
-            </p>
-            <p className="text-2xl font-bold mt-2">
-              {selectedBusDetails.capacity}
-            </p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">Bus Capacity</p>
+            <p className="text-2xl font-bold mt-2">{selectedBusDetails.capacity}</p>
           </div>
-
           <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
-            <p className="text-slate-500 dark:text-slate-400 text-sm">
-              Booked Seats
-            </p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">Booked Seats</p>
             <p className="text-2xl font-bold mt-2">{bookedSeatsCount}</p>
           </div>
-
           <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4">
-            <p className="text-slate-500 dark:text-slate-400 text-sm">
-              Available Seats
-            </p>
+            <p className="text-slate-500 dark:text-slate-400 text-sm">Available Seats</p>
             <p className="text-2xl font-bold mt-2 text-indigo-600 dark:text-purple-400">
               {selectedBusDetails.capacity - bookedSeatsCount}
             </p>
@@ -175,9 +195,11 @@ function Bookings() {
               <th className="p-4">Action</th>
             </tr>
           </thead>
-
           <tbody>
-            {bookings.length > 0 ? (
+            
+            {loadingBookings ? (
+              [...Array(4)].map((_, i) => <SkeletonRow key={i} />)
+            ) : bookings.length > 0 ? (
               bookings.map((booking) => (
                 <tr
                   key={booking._id}
@@ -190,27 +212,21 @@ function Bookings() {
                   <td className="p-4 font-medium whitespace-nowrap">
                     {booking.busId?.busNumber}
                   </td>
-
                   <td className="p-4 text-slate-600 dark:text-slate-300">
                     {booking.busId?.route}
                   </td>
-
                   <td className="p-4 font-semibold text-indigo-600 dark:text-purple-400 whitespace-nowrap">
                     #{booking.seatNumber}
                   </td>
-
                   <td className="p-4 whitespace-nowrap">
                     <span
                       className={`px-3 py-1 rounded text-sm text-white ${
-                        booking.status === "booked"
-                          ? "bg-green-600"
-                          : "bg-gray-500"
+                        booking.status === "booked" ? "bg-green-600" : "bg-gray-500"
                       }`}
                     >
                       {booking.status === "booked" ? "Confirmed" : "Cancelled"}
                     </span>
                   </td>
-
                   <td className="p-4 whitespace-nowrap">
                     {booking.status === "booked" ? (
                       <button
@@ -220,6 +236,7 @@ function Bookings() {
                         Cancel
                       </button>
                     ) : (
+                      
                       <span className="text-slate-400 text-sm">—</span>
                     )}
                   </td>
@@ -227,10 +244,7 @@ function Bookings() {
               ))
             ) : (
               <tr>
-                <td
-                  colSpan="5"
-                  className="p-4 text-center text-slate-500 dark:text-slate-400"
-                >
+                <td colSpan="5" className="p-4 text-center text-slate-500 dark:text-slate-400">
                   No bookings found
                 </td>
               </tr>

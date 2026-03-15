@@ -2,22 +2,40 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import toast from "react-hot-toast";
 
+function SkeletonCard() {
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm animate-pulse">
+      <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/2 mb-4"></div>
+      <div className="space-y-2 mb-4">
+        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-3/4"></div>
+        <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-2/3"></div>
+      </div>
+      <div className="flex gap-3">
+        <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-16"></div>
+        <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-16"></div>
+        <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-16"></div>
+      </div>
+    </div>
+  );
+}
+
 function Contacts() {
   const [contacts, setContacts] = useState([]);
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    email: "",
-  });
+  const [formData, setFormData] = useState({ name: "", phone: "", email: "" });
   const [loading, setLoading] = useState(false);
+  
+  const [loadingContacts, setLoadingContacts] = useState(true);
 
   const fetchContacts = async () => {
+    setLoadingContacts(true);
     try {
       const res = await API.get("/contacts");
       setContacts(res.data);
     } catch (error) {
       console.error("Error fetching contacts", error);
       toast.error("Failed to fetch contacts");
+    } finally {
+      setLoadingContacts(false);
     }
   };
 
@@ -26,27 +44,16 @@ function Contacts() {
   }, []);
 
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleAddContact = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       await API.post("/contacts", formData);
-
       toast.success("Contact added");
-
-      setFormData({
-        name: "",
-        phone: "",
-        email: "",
-      });
-
+      setFormData({ name: "", phone: "", email: "" });
       fetchContacts();
     } catch (error) {
       console.error("Error adding contact", error);
@@ -89,7 +96,6 @@ function Contacts() {
           className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 outline-none focus:border-indigo-500 dark:focus:border-purple-500"
           required
         />
-
         <input
           type="text"
           name="phone"
@@ -98,7 +104,6 @@ function Contacts() {
           onChange={handleChange}
           className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 outline-none focus:border-indigo-500 dark:focus:border-purple-500"
         />
-
         <input
           type="email"
           name="email"
@@ -107,7 +112,6 @@ function Contacts() {
           onChange={handleChange}
           className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 outline-none focus:border-indigo-500 dark:focus:border-purple-500"
         />
-
         <button
           type="submit"
           disabled={loading}
@@ -118,29 +122,25 @@ function Contacts() {
       </form>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {contacts.length > 0 ? (
+        {loadingContacts ? (
+          [...Array(3)].map((_, i) => <SkeletonCard key={i} />)
+        ) : contacts.length > 0 ? (
           contacts.map((contact) => (
             <div
               key={contact._id}
               className="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm"
             >
               <h2 className="text-xl font-semibold mb-4">{contact.name}</h2>
-
               <div className="space-y-2 text-slate-600 dark:text-slate-300">
                 <p>
-                  <span className="text-slate-500 dark:text-slate-400">
-                    Phone:
-                  </span>{" "}
+                  <span className="text-slate-500 dark:text-slate-400">Phone:</span>{" "}
                   {contact.phone || "N/A"}
                 </p>
                 <p>
-                  <span className="text-slate-500 dark:text-slate-400">
-                    Email:
-                  </span>{" "}
+                  <span className="text-slate-500 dark:text-slate-400">Email:</span>{" "}
                   {contact.email || "N/A"}
                 </p>
               </div>
-
               <div className="flex gap-3 mt-4">
                 {contact.phone && (
                   <a
@@ -150,7 +150,6 @@ function Contacts() {
                     Call
                   </a>
                 )}
-
                 {contact.email && (
                   <a
                     href={`mailto:${contact.email}`}
@@ -159,7 +158,6 @@ function Contacts() {
                     Email
                   </a>
                 )}
-
                 <button
                   onClick={() => handleDelete(contact._id)}
                   className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm text-white transition"

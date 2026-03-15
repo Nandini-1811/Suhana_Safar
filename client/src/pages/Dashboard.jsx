@@ -2,6 +2,15 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import toast from "react-hot-toast";
 
+function SkeletonCard() {
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800 animate-pulse">
+      <div className="h-3 bg-slate-200 dark:bg-slate-700 rounded w-2/3 mb-6"></div>
+      <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
+    </div>
+  );
+}
+
 function Dashboard() {
   const [stats, setStats] = useState(null);
 
@@ -21,8 +30,23 @@ function Dashboard() {
 
   if (!stats) {
     return (
-      <div className="text-slate-700 dark:text-slate-200">
-        Loading dashboard...
+      <div className="space-y-10 text-slate-900 dark:text-white">
+        <div>
+          <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-40 animate-pulse mb-2"></div>
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-72 animate-pulse"></div>
+        </div>
+        <div>
+          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-48 animate-pulse mb-4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-6">
+            {[...Array(5)].map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        </div>
+        <div>
+          <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-36 animate-pulse mb-4"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {[...Array(3)].map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        </div>
       </div>
     );
   }

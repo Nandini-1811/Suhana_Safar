@@ -2,16 +2,34 @@ import { useEffect, useState } from "react";
 import API from "../services/api";
 import toast from "react-hot-toast";
 
+
+function SkeletonRow() {
+  return (
+    <tr className="border-t border-slate-200 dark:border-slate-800">
+      {[...Array(5)].map((_, i) => (
+        <td key={i} className="p-4">
+          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse w-24"></div>
+        </td>
+      ))}
+    </tr>
+  );
+}
+
 function Schedule() {
   const [schedules, setSchedules] = useState([]);
+  
+  const [loading, setLoading] = useState(true);
 
   const fetchSchedules = async () => {
+    setLoading(true);
     try {
       const res = await API.get("/schedules");
       setSchedules(res.data);
     } catch (error) {
       console.error("Error fetching schedules", error);
       toast.error("Failed to fetch schedules");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,9 +57,10 @@ function Schedule() {
               <th className="p-4">Arrival</th>
             </tr>
           </thead>
-
           <tbody>
-            {schedules.length > 0 ? (
+            {loading ? (
+              [...Array(5)].map((_, i) => <SkeletonRow key={i} />)
+            ) : schedules.length > 0 ? (
               schedules.map((schedule) => (
                 <tr
                   key={schedule._id}
@@ -54,9 +73,7 @@ function Schedule() {
                     {schedule.busId?.route || "N/A"}
                   </td>
                   <td className="p-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
-                    {schedule.date
-                      ? new Date(schedule.date).toLocaleDateString()
-                      : "N/A"}
+                    {schedule.date ? new Date(schedule.date).toLocaleDateString() : "N/A"}
                   </td>
                   <td className="p-4 text-slate-600 dark:text-slate-300 whitespace-nowrap">
                     {schedule.departureTime || "N/A"}
@@ -68,10 +85,7 @@ function Schedule() {
               ))
             ) : (
               <tr>
-                <td
-                  colSpan="5"
-                  className="p-4 text-center text-slate-500 dark:text-slate-400"
-                >
+                <td colSpan="5" className="p-4 text-center text-slate-500 dark:text-slate-400">
                   No schedules found.
                 </td>
               </tr>

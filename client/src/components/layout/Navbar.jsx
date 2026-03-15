@@ -4,12 +4,14 @@ import { ThemeContext } from "../context/ThemeContext";
 
 function Navbar({ onMenuClick }) {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useContext(ThemeContext);
-  const user = JSON.parse(localStorage.getItem("user"));
+  const { theme, toggleTheme, forceTheme } = useContext(ThemeContext);
+  const user = JSON.parse(sessionStorage.getItem("user"));
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+    
+    forceTheme("dark");
     navigate("/");
   };
 

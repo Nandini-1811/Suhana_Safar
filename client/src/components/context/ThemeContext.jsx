@@ -16,8 +16,16 @@ export function ThemeProvider({ children }) {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
+  const forceTheme = (forcedTheme) => {
+    document.documentElement.classList.toggle("dark", forcedTheme === "dark");
+  };
+
+  const restoreTheme = () => {
+    document.documentElement.classList.toggle("dark", theme === "dark");
+  };
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, toggleTheme, forceTheme, restoreTheme }}>
       {children}
     </ThemeContext.Provider>
   );

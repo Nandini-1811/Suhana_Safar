@@ -4,59 +4,55 @@ import { Shield, Flame, PhoneCall } from "lucide-react";
 import toast from "react-hot-toast";
 
 const defaultEmergencyContacts = [
-  {
-    id: 1,
-    name: "Women Helpline",
-    phone: "1091",
-    type: "Women Safety",
-    icon: Shield,
-  },
-  {
-    id: 2,
-    name: "Police",
-    phone: "100",
-    type: "Police",
-    icon: Shield,
-  },
-  {
-    id: 3,
-    name: "Fire Brigade",
-    phone: "101",
-    type: "Fire",
-    icon: Flame,
-  },
-  {
-    id: 4,
-    name: "Ambulance",
-    phone: "108",
-    type: "Ambulance",
-    icon: PhoneCall,
-  },
-  {
-    id: 5,
-    name: "National Emergency",
-    phone: "112",
-    type: "Emergency",
-    icon: PhoneCall,
-  },
+  { id: 1, name: "Women Helpline", phone: "1091", type: "Women Safety", icon: Shield },
+  { id: 2, name: "Police", phone: "100", type: "Police", icon: Shield },
+  { id: 3, name: "Fire Brigade", phone: "101", type: "Fire", icon: Flame },
+  { id: 4, name: "Ambulance", phone: "108", type: "Ambulance", icon: PhoneCall },
+  { id: 5, name: "National Emergency", phone: "112", type: "Emergency", icon: PhoneCall },
 ];
+
+const typeColors = {
+  Police: "bg-blue-600",
+  Fire: "bg-red-600",
+  Ambulance: "bg-green-600",
+  Other: "bg-purple-600",
+  "Women Safety": "bg-pink-600",
+  Emergency: "bg-orange-600",
+};
+
+function SkeletonCard() {
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm animate-pulse">
+      <div className="flex items-center justify-between mb-4">
+        <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
+        <div className="h-5 bg-slate-200 dark:bg-slate-700 rounded w-16"></div>
+      </div>
+      <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-4"></div>
+      <div className="flex gap-3">
+        <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-16"></div>
+        <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-16"></div>
+      </div>
+    </div>
+  );
+}
 
 function Emergency() {
   const [contacts, setContacts] = useState([]);
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    type: "Other",
-  });
+  const [formData, setFormData] = useState({ name: "", phone: "", type: "Other" });
   const [loading, setLoading] = useState(false);
+  
+  const [loadingContacts, setLoadingContacts] = useState(true);
 
   const fetchContacts = async () => {
+    setLoadingContacts(true);
     try {
       const res = await API.get("/emergency");
       setContacts(res.data);
     } catch (error) {
       console.error("Error fetching emergency contacts", error);
       toast.error("Failed to fetch emergency contacts");
+    } finally {
+      setLoadingContacts(false);
     }
   };
 
@@ -65,27 +61,16 @@ function Emergency() {
   }, []);
 
   const handleChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      [e.target.name]: e.target.value,
-    }));
+    setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleAddContact = async (e) => {
     e.preventDefault();
     setLoading(true);
-
     try {
       await API.post("/emergency", formData);
-
       toast.success("Emergency contact added");
-
-      setFormData({
-        name: "",
-        phone: "",
-        type: "Other",
-      });
-
+      setFormData({ name: "", phone: "", type: "Other" });
       fetchContacts();
     } catch (error) {
       console.error("Error adding emergency contact", error);
@@ -106,15 +91,6 @@ function Emergency() {
     }
   };
 
-  const typeColors = {
-    Police: "bg-blue-600",
-    Fire: "bg-red-600",
-    Ambulance: "bg-green-600",
-    Other: "bg-purple-600",
-    "Women Safety": "bg-pink-600",
-    Emergency: "bg-orange-600",
-  };
-
   return (
     <div className="space-y-8 text-slate-900 dark:text-white">
       <div>
@@ -126,11 +102,9 @@ function Emergency() {
 
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Default Emergency Services</h2>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {defaultEmergencyContacts.map((contact) => {
             const Icon = contact.icon;
-
             return (
               <div
                 key={contact.id}
@@ -138,35 +112,21 @@ function Emergency() {
               >
                 <div className="flex items-start justify-between mb-4">
                   <div>
-                    <Icon
-                      size={26}
-                      className="text-indigo-600 dark:text-purple-400 mb-3"
-                    />
+                    <Icon size={26} className="text-indigo-600 dark:text-purple-400 mb-3" />
                     <h3 className="text-lg font-semibold">{contact.name}</h3>
                   </div>
-
-                  <span
-                    className={`text-xs px-3 py-1 rounded-full text-white ${
-                      typeColors[contact.type] || "bg-purple-600"
-                    }`}
-                  >
+                  <span className={`text-xs px-3 py-1 rounded-full text-white ${typeColors[contact.type] || "bg-purple-600"}`}>
                     {contact.type}
                   </span>
                 </div>
-
                 <p className="text-slate-600 dark:text-slate-300 mb-4">
-                  <span className="text-slate-500 dark:text-slate-400">
-                    Phone:
-                  </span>{" "}
-                  {contact.phone}
+                  <span className="text-slate-500 dark:text-slate-400">Phone:</span> {contact.phone}
                 </p>
-
                 {contact.phone === "112" && (
                   <p className="text-orange-500 dark:text-orange-400 text-sm mb-2">
                     National Emergency Helpline
                   </p>
                 )}
-
                 <a
                   href={`tel:${contact.phone}`}
                   className="flex items-center gap-2 bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm text-white w-fit transition"
@@ -195,7 +155,6 @@ function Emergency() {
           className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 outline-none focus:border-indigo-500 dark:focus:border-purple-500"
           required
         />
-
         <input
           type="text"
           name="phone"
@@ -205,7 +164,6 @@ function Emergency() {
           className="bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white px-4 py-3 rounded-lg border border-slate-200 dark:border-slate-700 outline-none focus:border-indigo-500 dark:focus:border-purple-500"
           required
         />
-
         <select
           name="type"
           value={formData.type}
@@ -217,7 +175,6 @@ function Emergency() {
           <option value="Ambulance">Ambulance</option>
           <option value="Other">Other</option>
         </select>
-
         <button
           type="submit"
           disabled={loading}
@@ -228,7 +185,9 @@ function Emergency() {
       </form>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-        {contacts.length > 0 ? (
+        {loadingContacts ? (
+          [...Array(3)].map((_, i) => <SkeletonCard key={i} />)
+        ) : contacts.length > 0 ? (
           contacts.map((contact) => (
             <div
               key={contact._id}
@@ -236,23 +195,13 @@ function Emergency() {
             >
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold">{contact.name}</h2>
-
-                <span
-                  className={`text-xs px-3 py-1 rounded-full text-white ${
-                    typeColors[contact.type] || "bg-purple-600"
-                  }`}
-                >
+                <span className={`text-xs px-3 py-1 rounded-full text-white ${typeColors[contact.type] || "bg-purple-600"}`}>
                   {contact.type}
                 </span>
               </div>
-
               <p className="text-slate-600 dark:text-slate-300 mb-2">
-                <span className="text-slate-500 dark:text-slate-400">
-                  Phone:
-                </span>{" "}
-                {contact.phone}
+                <span className="text-slate-500 dark:text-slate-400">Phone:</span> {contact.phone}
               </p>
-
               <div className="flex gap-3 mt-4">
                 <a
                   href={`tel:${contact.phone}`}
@@ -261,7 +210,6 @@ function Emergency() {
                   <PhoneCall size={16} />
                   Call
                 </a>
-
                 <button
                   onClick={() => handleDelete(contact._id)}
                   className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-sm text-white transition"
